@@ -12,7 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.room.Delete
 import com.example.reciostudentattendancetracker.data.StudentEntity
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceViewModel
 
@@ -173,5 +172,47 @@ fun AddEditStudentDialog(
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit
 ) {
+    var studentName by remember { mutableStateOf(student?.studentName ?: "") }
+    var studentIdNumber by remember { mutableStateOf(student?.studentIdNumber ?: "") }
 
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (student == null) "Add Student" else "Edit Student") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = studentName,
+                    onValueChange = { studentName = it },
+                    label = { Text("Student Name") },
+                    placeholder = { Text("e.g., Juan Dela Cruz") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = studentIdNumber,
+                    onValueChange = { studentIdNumber = it },
+                    label = { Text("Student ID Number") },
+                    placeholder = { Text("e.g., 2025-12345") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (studentName.isNotBlank() && studentIdNumber.isNotBlank()) {
+                        onSave(studentName, studentIdNumber)
+                    }
+                },
+                enabled = studentName.isNotBlank() && studentIdNumber.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
