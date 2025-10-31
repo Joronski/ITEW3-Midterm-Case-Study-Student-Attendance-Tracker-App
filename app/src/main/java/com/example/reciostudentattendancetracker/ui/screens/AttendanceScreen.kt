@@ -2,15 +2,21 @@ package com.example.reciostudentattendancetracker.ui.screens
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reciostudentattendancetracker.data.ClassEntity
@@ -35,101 +41,229 @@ fun AttendanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mark Attendance") },
+                title = {
+                    Text(
+                        "Mark Attendance",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            // Class Selector
-            if (classes.isNotEmpty()) {
-                var expanded by remember { mutableStateOf(false) }
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedClass?.className ?: "Select Class",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Class") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                            MaterialTheme.colorScheme.background
+                        )
                     )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                )
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                if (classes.isNotEmpty()) {
+                    // Class Selector Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        classes.forEach { classItem ->
-                            DropdownMenuItem(
-                                text = { Text("${classItem.className} - ${classItem.subjectName}") },
-                                onClick = {
-                                    selectedClass = classItem
-                                    expanded = false
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            var expanded by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedClass?.let { "${it.className} - ${it.subjectName}" } ?: "Select Class",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Class") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Face, contentDescription = null)
+                                    },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    classes.forEach { classItem ->
+                                        DropdownMenuItem(
+                                            text = { Text("${classItem.className} - ${classItem.subjectName}") },
+                                            onClick = {
+                                                selectedClass = classItem
+                                                expanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Face, contentDescription = null)
+                                            }
+                                        )
+                                    }
                                 }
+                            }
+
+                            // Date Selector
+                            OutlinedCard(
+                                onClick = { showDatePicker = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.outlinedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Default.DateRange,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column {
+                                            Text(
+                                                text = "Selected Date",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                    Icon(
+                                        Icons.Default.Edit,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Student List with Attendance
+                    if (selectedClass != null) {
+                        AttendanceList(
+                            classId = selectedClass!!.id,
+                            date = selectedDate.toString(),
+                            viewModel = viewModel
+                        )
+                    } else {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    Icons.Default.Info,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Please select a class to mark attendance",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "No classes available",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "Please add classes first to mark attendance",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Date Selector
-                OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.DateRange, "Select Date")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(selectedDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Student List with Attendance
-                if (selectedClass != null) {
-                    AttendanceList(
-                        classId = selectedClass!!.id,
-                        date = selectedDate.toString(),
-                        viewModel = viewModel
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Please select a class to mark attendance")
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No classes available. Please add classes first.")
                 }
             }
         }
     }
 
     if (showDatePicker) {
-        DatePickerDialog(
+        ModernDatePickerDialog(
             selectedDate = selectedDate,
             onDateSelected = { selectedDate = it },
             onDismiss = { showDatePicker = false }
@@ -155,16 +289,39 @@ fun AttendanceList(
     }
 
     if (students.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            )
         ) {
-            Text("No students in this class")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "No students in this class",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     } else {
-        LazyColumn {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             items(students) { student ->
-                AttendanceRow(
+                ModernAttendanceRow(
                     student = student,
                     currentStatus = attendanceMap[student.id],
                     onStatusChange = { status ->
@@ -172,37 +329,74 @@ fun AttendanceList(
                         attendanceMap = attendanceMap + (student.id to status)
                     }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AttendanceRow(
+fun ModernAttendanceRow(
     student: StudentEntity,
     currentStatus: String?,
     onStatusChange: (String) -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = student.studentName,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "ID: ${student.studentIdNumber}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            when (currentStatus) {
+                                "Present" -> Color(0xFF43A047)
+                                "Absent" -> Color(0xFFE53935)
+                                "Late" -> Color(0xFFFFB300)
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
+                            shape = RoundedCornerShape(10.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = student.studentName.first().uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = student.studentName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "ID: ${student.studentIdNumber}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -210,55 +404,72 @@ fun AttendanceRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilterChip(
-                    selected = currentStatus == "Present",
+                StatusChip(
+                    label = "Present",
+                    icon = Icons.Default.CheckCircle,
+                    isSelected = currentStatus == "Present",
                     onClick = { onStatusChange("Present") },
-                    label = { Text("Present") },
-                    leadingIcon = if (currentStatus == "Present") {
-                        { Icon(Icons.Default.Check, "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    color = Color(0xFF43A047),
+                    modifier = Modifier.weight(1f)
                 )
 
-                FilterChip(
-                    selected = currentStatus == "Absent",
+                StatusChip(
+                    label = "Absent",
+                    icon = Icons.Default.Close,
+                    isSelected = currentStatus == "Absent",
                     onClick = { onStatusChange("Absent") },
-                    label = { Text("Absent") },
-                    leadingIcon = if (currentStatus == "Absent") {
-                        { Icon(Icons.Default.Close, "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.error,
-                        selectedLabelColor = MaterialTheme.colorScheme.onError
-                    )
+                    color = Color(0xFFE53935),
+                    modifier = Modifier.weight(1f)
                 )
 
-                FilterChip(
-                    selected = currentStatus == "Late",
+                StatusChip(
+                    label = "Late",
+                    icon = Icons.Default.Person,
+                    isSelected = currentStatus == "Late",
                     onClick = { onStatusChange("Late") },
-                    label = { Text("Late") },
-                    leadingIcon = if (currentStatus == "Late") {
-                        { Icon(Icons.Default.Check, "Selected") }
-                    } else null,
-                    modifier = Modifier.weight(1f),
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
-                    )
+                    color = Color(0xFFFFB300),
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
     }
 }
 
+@Composable
+fun StatusChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    FilterChip(
+        selected = isSelected,
+        onClick = onClick,
+        label = {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        },
+        leadingIcon = if (isSelected) {
+            { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) }
+        } else null,
+        modifier = modifier.height(40.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = color,
+            selectedLabelColor = Color.White,
+            selectedLeadingIconColor = Color.White
+        )
+    )
+}
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun DatePickerDialog(
+fun ModernDatePickerDialog(
     selectedDate: LocalDate,
     onDateSelected: (LocalDate) -> Unit,
     onDismiss: () -> Unit
@@ -267,45 +478,90 @@ fun DatePickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Selected Date") },
+        icon = {
+            Icon(
+                Icons.Default.DateRange,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = { Text("Select Date", fontWeight = FontWeight.Bold) },
         text = {
-            Column {
-                Text("Selected: ${tempDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"))}")
-                Spacer(modifier = Modifier.height(8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = tempDate.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy")),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = tempDate.format(DateTimeFormatter.ofPattern("EEEE")),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(
+                    OutlinedButton(
                         onClick = { tempDate = tempDate.minusDays(1) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Previous Day")
+                        Icon(Icons.Default.ArrowBack, null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Previous", style = MaterialTheme.typography.labelSmall)
                     }
                     Button(
                         onClick = { tempDate = LocalDate.now() },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Text("Today")
                     }
-                    Button(
+                    OutlinedButton(
                         onClick = { tempDate = tempDate.plusDays(1) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Next Day")
+                        Text("Next", style = MaterialTheme.typography.labelSmall)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Default.ArrowForward, null, modifier = Modifier.size(16.dp))
                     }
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = {
-                onDateSelected(tempDate)
-                onDismiss()
-            }) {
-                Text("OK")
+            Button(
+                onClick = {
+                    onDateSelected(tempDate)
+                    onDismiss()
+                },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Confirm")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(8.dp)
+            ) {
                 Text("Cancel")
             }
         }

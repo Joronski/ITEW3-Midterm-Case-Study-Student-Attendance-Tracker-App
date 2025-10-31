@@ -1,15 +1,20 @@
 package com.example.reciostudentattendancetracker.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reciostudentattendancetracker.data.ClassEntity
@@ -30,79 +35,165 @@ fun ReportsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Attendance Reports") },
+                title = {
+                    Text(
+                        "Attendance Reports",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-        ) {
-            if (classes.isNotEmpty()) {
-                var expanded by remember { mutableStateOf(false) }
-
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedClass?.className ?: "Select Class",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Class") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.05f),
+                            MaterialTheme.colorScheme.background
+                        )
                     )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                )
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                if (classes.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        classes.forEach { classItem ->
-                            DropdownMenuItem(
-                                text = { Text("${classItem.className} - ${classItem.subjectName}") },
-                                onClick = {
-                                    selectedClass = classItem
-                                    expanded = false
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            var expanded by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedClass?.let { "${it.className} - ${it.subjectName}" } ?: "Select Class",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Class") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Info, contentDescription = null)
+                                    },
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.tertiary,
+                                        focusedLabelColor = MaterialTheme.colorScheme.tertiary,
+                                        focusedLeadingIconColor = MaterialTheme.colorScheme.tertiary
+                                    )
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    classes.forEach { classItem ->
+                                        DropdownMenuItem(
+                                            text = { Text("${classItem.className} - ${classItem.subjectName}") },
+                                            onClick = {
+                                                selectedClass = classItem
+                                                expanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Face, contentDescription = null)
+                                            }
+                                        )
+                                    }
                                 }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (selectedClass != null) {
+                        AttendanceReportList(
+                            classId = selectedClass!!.id,
+                            viewModel = viewModel
+                        )
+                    } else {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    Icons.Default.List,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Select a class to view reports",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "No classes available",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (selectedClass != null) {
-                    AttendanceReportList(
-                        classId = selectedClass!!.id,
-                        viewModel = viewModel
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Please select a class to view reports")
-                    }
-                }
-            } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("No classes available")
                 }
             }
         }
@@ -129,115 +220,238 @@ fun AttendanceReportList(
     }
 
     if (students.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            )
         ) {
-            Text("No Students in this class")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "No students in this class",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     } else {
-        LazyColumn {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             items(students) { student ->
                 val summary = summaryMap[student.id]
                 if (summary != null) {
-                    AttendanceReportCard(
+                    ModernAttendanceReportCard(
                         student = student,
                         summary = summary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AttendanceReportCard(
+fun ModernAttendanceReportCard(
     student: StudentEntity,
     summary: AttendanceSummary
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+            ),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            when {
+                                summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                else -> Color(0xFFE53935).copy(alpha = 0.15f)
+                            },
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .padding(20.dp)
         ) {
-            Text(
-                text = student.studentName,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "ID: ${student.studentIdNumber}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Attendance Percentage Implementations
+            // Student Info
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Attendance Rate",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = String.format("%.1f%%", summary.percentage),
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = when {
-                        summary.percentage >= 90 -> MaterialTheme.colorScheme.primary
-                        summary.percentage >= 75 -> MaterialTheme.colorScheme.tertiary
-                        else -> MaterialTheme.colorScheme.error
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiary,
+                                    MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            ),
+                            shape = RoundedCornerShape(15.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = student.studentName.first().uppercase(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = student.studentName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "ID: ${student.studentIdNumber}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Attendance Percentage
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = when {
+                        summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.2f)
+                        summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.2f)
+                        else -> Color(0xFFE53935).copy(alpha = 0.2f)
                     }
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Attendance Rate",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = when {
+                                summary.percentage >= 90 -> "Excellent"
+                                summary.percentage >= 75 -> "Good"
+                                summary.percentage >= 60 -> "Fair"
+                                else -> "Needs Improvement"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = String.format("%.1f%%", summary.percentage),
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            summary.percentage >= 90 -> Color(0xFF43A047)
+                            summary.percentage >= 75 -> Color(0xFFFFB300)
+                            else -> Color(0xFFE53935)
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Progress Bar
+            LinearProgressIndicator(
+                progress = { summary.percentage / 100f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(12.dp),
+                color = when {
+                    summary.percentage >= 90 -> Color(0xFF43A047)
+                    summary.percentage >= 75 -> Color(0xFFFFB300)
+                    else -> Color(0xFFE53935)
+                },
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Statistics Grid
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard(
+                    label = "Present",
+                    value = summary.present.toString(),
+                    icon = Icons.Default.CheckCircle,
+                    color = Color(0xFF43A047),
+                    modifier = Modifier.weight(1f)
+                )
+                StatCard(
+                    label = "Late",
+                    value = summary.late.toString(),
+                    icon = Icons.Default.Person,
+                    color = Color(0xFFFFB300),
+                    modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Progress Bar Implementation
-            LinearProgressIndicator(
-                progress = { summary.percentage / 100f },
-                modifier = Modifier.fillMaxWidth(),
-                color = when {
-                    summary.percentage >= 90 -> MaterialTheme.colorScheme.primary
-                    summary.percentage >= 75 -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.error
-                },
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Statistics Implementations
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatisticItem(
-                    label = "Present",
-                    value = summary.present.toString(),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                StatisticItem(
-                    label = "Late",
-                    value = summary.late.toString(),
-                    color = MaterialTheme.colorScheme.tertiary
-                )
-                StatisticItem(
+                StatCard(
                     label = "Absent",
                     value = summary.absent.toString(),
-                    color = MaterialTheme.colorScheme.error
+                    icon = Icons.Default.Clear,
+                    color = Color(0xFFE53935),
+                    modifier = Modifier.weight(1f)
                 )
-                StatisticItem(
-                    label = "Total",
+                StatCard(
+                    label = "Total Days",
                     value = summary.total.toString(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    icon = Icons.Default.DateRange,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -245,23 +459,44 @@ fun AttendanceReportCard(
 }
 
 @Composable
-fun StatisticItem(
+fun StatCard(
     label: String,
     value: String,
-    color: androidx.compose.ui.graphics.Color
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    color: Color,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.15f)
+        )
     ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge,
-            color = color
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = color
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
