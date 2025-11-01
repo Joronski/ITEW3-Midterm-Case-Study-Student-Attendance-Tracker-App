@@ -378,7 +378,7 @@ fun ModernAddEditClassDialog(
                     label = { Text("Subject Name") },
                     placeholder = { Text("e.g., Mobile Development") },
                     leadingIcon = {
-                        Icon(Icons.Default.Face, contentDescription = null)
+                        Icon(Icons.Default.Info, contentDescription = null)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),

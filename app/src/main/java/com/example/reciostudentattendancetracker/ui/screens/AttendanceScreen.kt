@@ -523,9 +523,9 @@ fun ModernDatePickerDialog(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Icon(Icons.Default.ArrowBack, null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Previous", style = MaterialTheme.typography.labelSmall)
+                        Icon(Icons.Default.ArrowBack, null, modifier = Modifier.size(10.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("Prev", style = MaterialTheme.typography.labelSmall)
                     }
                     Button(
                         onClick = { tempDate = LocalDate.now() },
@@ -541,7 +541,7 @@ fun ModernDatePickerDialog(
                     ) {
                         Text("Next", style = MaterialTheme.typography.labelSmall)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Icon(Icons.Default.ArrowForward, null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.ArrowForward, null, modifier = Modifier.size(20.dp))
                     }
                 }
             }

@@ -275,7 +275,7 @@ fun ModernStudentCard(
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = Icons.Default.Star,
+                            imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -393,7 +393,7 @@ fun ModernAddEditStudentDialog(
                     label = { Text("Student ID Number") },
                     placeholder = { Text("e.g., 2021-12345") },
                     leadingIcon = {
-                        Icon(Icons.Default.Star, contentDescription = null)
+                        Icon(Icons.Default.CheckCircle, contentDescription = null)
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),

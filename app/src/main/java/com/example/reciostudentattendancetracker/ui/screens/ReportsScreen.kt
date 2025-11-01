@@ -290,7 +290,8 @@ fun ModernAttendanceReportCard(
                         colors = listOf(
                             when {
                                 summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
-                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.15f)
+                                summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.15f)
                                 else -> Color(0xFFE53935).copy(alpha = 0.15f)
                             },
                             MaterialTheme.colorScheme.surface
@@ -351,7 +352,8 @@ fun ModernAttendanceReportCard(
                 colors = CardDefaults.cardColors(
                     containerColor = when {
                         summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.2f)
-                        summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.2f)
+                        summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.2f)
+                        summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.2f)
                         else -> Color(0xFFE53935).copy(alpha = 0.2f)
                     }
                 )
@@ -386,7 +388,8 @@ fun ModernAttendanceReportCard(
                         fontWeight = FontWeight.Bold,
                         color = when {
                             summary.percentage >= 90 -> Color(0xFF43A047)
-                            summary.percentage >= 75 -> Color(0xFFFFB300)
+                            summary.percentage >= 75 -> Color(0xFF4DB6AC)
+                            summary.percentage >= 60 -> Color(0xFFFFB300)
                             else -> Color(0xFFE53935)
                         }
                     )
@@ -403,7 +406,8 @@ fun ModernAttendanceReportCard(
                     .height(12.dp),
                 color = when {
                     summary.percentage >= 90 -> Color(0xFF43A047)
-                    summary.percentage >= 75 -> Color(0xFFFFB300)
+                    summary.percentage >= 75 -> Color(0xFF4DB6AC)
+                    summary.percentage >= 60 -> Color(0xFFFFB300)
                     else -> Color(0xFFE53935)
                 },
                 trackColor = MaterialTheme.colorScheme.surfaceVariant,
