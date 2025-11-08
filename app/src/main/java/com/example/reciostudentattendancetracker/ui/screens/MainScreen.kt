@@ -14,12 +14,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun MainScreen(
     onNavigateToClasses: () -> Unit,
+    onNavigateToStudents: () -> Unit,
     onNavigateToAttendance: () -> Unit,
     onNavigateToReports: () -> Unit
 ) {
@@ -68,8 +68,7 @@ fun MainScreen(
                         text = "Dangal Attendance Tracker",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        textAlign = TextAlign.Center
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -82,13 +81,26 @@ fun MainScreen(
 
             // Menu Cards
             ModernMenuCard(
-                title = "Manage Classes & Students",
-                description = "Add or edit classes and their students",
+                title = "Class List",
+                description = "Manage and view all classes",
                 icon = Icons.Default.Face,
                 onClick = onNavigateToClasses,
                 gradient = listOf(
                     MaterialTheme.colorScheme.primary,
                     MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ModernMenuCard(
+                title = "Student List",
+                description = "View all students in the system",
+                icon = Icons.Default.Info,
+                onClick = onNavigateToStudents,
+                gradient = listOf(
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.secondaryContainer
                 )
             )
 
@@ -108,13 +120,13 @@ fun MainScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             ModernMenuCard(
-                title = "View Reports",
+                title = "Attendance Summary",
                 description = "Check attendance statistics & summaries",
                 icon = Icons.Default.List,
                 onClick = onNavigateToReports,
                 gradient = listOf(
-                    MaterialTheme.colorScheme.tertiary,
-                    MaterialTheme.colorScheme.tertiaryContainer
+                    Color(0xFF9CCC65),
+                    Color(0xFFDCEDC8)
                 )
             )
         }
