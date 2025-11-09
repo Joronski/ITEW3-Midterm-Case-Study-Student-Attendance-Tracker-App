@@ -144,10 +144,154 @@ fun AllStudentsScreen(
                         )
 
                         // Class Filter Implementations
-                        // Initial Revisions of User Experience and Interaction as of Nov 9, 2025 at 8:15 AM
+                        if (classes.isNotEmpty()) {
+                            var expanded by remember { mutableStateOf(false) }
+
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = { expanded = it }
+                            ) {
+                                OutlinedTextField(
+                                    value = if (selectedClassFilter == null) {
+                                        "All Classes"
+                                    } else {
+                                        classes.find { it.id == selectedClassFilter }?.className ?: "All Classes"
+                                    },
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Filter by Class") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.List, contentDescription = null)
+                                    },
+                                    trailingIcon = {
+                                        Row {
+                                            if (selectedClassFilter != null) {
+                                                IconButton(onClick = { selectedClassFilter = null }) {
+                                                    Icon(Icons.Default.Clear, "Clear filter")
+                                                }
+                                            }
+                                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("All Classes") },
+                                        onClick = {
+                                            selectedClassFilter = null
+                                            expanded = false
+                                        },
+                                        leadingIcon = {
+                                            Icon(Icons.Default.Person, contentDescription = null)
+                                        }
+                                    )
+                                    Divider()
+                                    classes.forEach { classItem ->
+                                        DropdownMenuItem(
+                                            text = { Text("${classItem.className} - ${classItem.subjectName}") },
+                                            onClick = {
+                                                selectedClassFilter = classItem.id
+                                                expanded = false
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Face, contentDescription = null)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Student Implementation Count
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.AccountBox,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.secondary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Total Students: ${filteredStudents.size}",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Student List Implementation
+                if (filteredStudents.isEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(48.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Text(
+                                "No Students Found",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                "Try adjusting your search or filter",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(filteredStudents) { studentsWithClass ->
+                            ViewOnlyStudentCard(
+                                studentWithClass = studentsWithClass
+                            )
+                        }
                     }
                 }
             }
         }
     }
+}
+
+@Composable
+fun ViewOnlyStudentCard(
+    studentWithClass: StudentWithClass
+) {
+
 }
