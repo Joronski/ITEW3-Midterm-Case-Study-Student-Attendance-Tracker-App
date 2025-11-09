@@ -27,8 +27,7 @@ fun StudentListScreen(
     onNavigateBack: () -> Unit
 ) {
     val students by viewModel.getStudentsByClass(classId).collectAsState(initial = emptyList())
-    var showDialog by remember { mutableStateOf(false) }
-    var editingStudent by remember { mutableStateOf<StudentEntity?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -53,10 +52,7 @@ fun StudentListScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {
-                    editingStudent = null
-                    showDialog = true
-                },
+                onClick = { showAddDialog = true },
                 icon = { Icon(Icons.Default.Add, "Add Student") },
                 text = { Text("Add Student") },
                 containerColor = MaterialTheme.colorScheme.secondary,
@@ -106,10 +102,7 @@ fun StudentListScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = {
-                            editingStudent = null
-                            showDialog = true
-                        },
+                        onClick = { showAddDialog = true },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary
                         ),
@@ -162,12 +155,8 @@ fun StudentListScreen(
                     }
 
                     items(students) { student ->
-                        ModernStudentCard(
+                        ViewOnlyStudentCardInClass(
                             student = student,
-                            onEdit = {
-                                editingStudent = student
-                                showDialog = true
-                            },
                             onDelete = { viewModel.deleteStudent(student) }
                         )
                     }
@@ -179,32 +168,20 @@ fun StudentListScreen(
         }
     }
 
-    if (showDialog) {
-        ModernAddEditStudentDialog(
-            student = editingStudent,
-            onDismiss = { showDialog = false },
+    if (showAddDialog) {
+        AddStudentDialog(
+            onDismiss = { showAddDialog = false },
             onSave = { name, idNumber ->
-                if (editingStudent != null) {
-                    viewModel.updateStudent(
-                        editingStudent!!.copy(
-                            studentName = name,
-                            studentIdNumber = idNumber
-                        )
-                    )
-                } else {
-                    viewModel.insertStudent(name, idNumber, classId)
-                }
-                showDialog = false
+                viewModel.insertStudent(name, idNumber, classId)
+                showAddDialog = false
             }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModernStudentCard(
+fun ViewOnlyStudentCardInClass(
     student: StudentEntity,
-    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -290,23 +267,13 @@ fun ModernStudentCard(
                 }
             }
 
-            Row {
-                IconButton(
-                    onClick = onEdit,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.secondary
-                    )
-                ) {
-                    Icon(Icons.Default.Edit, "Edit")
-                }
-                IconButton(
-                    onClick = { showDeleteDialog = true },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Icon(Icons.Default.Delete, "Delete")
-                }
+            IconButton(
+                onClick = { showDeleteDialog = true },
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Icon(Icons.Default.Delete, "Delete")
             }
         }
     }
@@ -346,26 +313,25 @@ fun ModernStudentCard(
 }
 
 @Composable
-fun ModernAddEditStudentDialog(
-    student: StudentEntity?,
+fun AddStudentDialog(
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit
 ) {
-    var studentName by remember { mutableStateOf(student?.studentName ?: "") }
-    var studentIdNumber by remember { mutableStateOf(student?.studentIdNumber ?: "") }
+    var studentName by remember { mutableStateOf("") }
+    var studentIdNumber by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = {
             Icon(
-                if (student == null) Icons.Default.AddCircle else Icons.Default.Edit,
+                Icons.Default.AddCircle,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.secondary
             )
         },
         title = {
             Text(
-                if (student == null) "Add New Student" else "Edit Student",
+                "Add New Student",
                 fontWeight = FontWeight.Bold
             )
         },

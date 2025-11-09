@@ -336,7 +336,7 @@ fun ViewOnlyStudentCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = studentWithClass.student.studentName.last().uppercase(),
+                    text = studentWithClass.student.studentName.first().uppercase(),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondary
