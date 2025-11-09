@@ -22,6 +22,8 @@ import com.example.reciostudentattendancetracker.data.StudentEntity
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceViewModel
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceSummary
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,14 +32,18 @@ fun ReportsScreen(
     onNavigateBack: () -> Unit
 ) {
     val classes by viewModel.allClasses.collectAsState(initial = emptyList())
+    var selectedView by remember { mutableStateOf(ReportView.PER_CLASS) }
     var selectedClass by remember { mutableStateOf<ClassEntity?>(null) }
+    var showDateFilter by remember { mutableStateOf(false) }
+    var startDate by remember { mutableStateOf<LocalDate?>(null) }
+    var endDate by remember { mutableStateOf<LocalDate?>(null) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        "Attendance Reports",
+                        "Attendance Summary",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -46,10 +52,24 @@ fun ReportsScreen(
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
+                actions = {
+                    IconButton(onClick = { showDateFilter = true }) {
+                        Icon(
+                            Icons.Default.DateRange,
+                            "Date Filter",
+                            tint = if (startDate != null || endDate != null) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onPrimary
+                            }
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
