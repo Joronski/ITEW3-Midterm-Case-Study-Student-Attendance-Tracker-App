@@ -1,5 +1,7 @@
 package com.example.reciostudentattendancetracker.ui.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen(
@@ -57,11 +60,10 @@ fun ReportsScreen(
                         Icon(
                             Icons.Default.DateRange,
                             "Date Filter",
-                            tint = if (startDate != null || endDate != null) {
+                            tint = if (startDate != null || endDate != null)
                                 MaterialTheme.colorScheme.primary
-                            } else {
+                            else
                                 MaterialTheme.colorScheme.onPrimary
-                            }
                         )
                     }
                 },
@@ -92,16 +94,102 @@ fun ReportsScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                if (classes.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                // View Toggle Card Implementation
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "View Mode",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = selectedView == ReportView.PER_CLASS,
+                                onClick = {
+                                    selectedView = ReportView.PER_CLASS
+                                    selectedClass = null
+                                },
+                                label = { Text("Per Class") },
+                                leadingIcon = if (selectedView == ReportView.PER_CLASS) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                } else null,
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilterChip(
+                                selected = selectedView == ReportView.OVERALL,
+                                onClick = {
+                                    selectedView = ReportView.OVERALL
+                                    selectedClass = null
+                                },
+                                label = { Text("Overall") },
+                                leadingIcon = if (selectedView == ReportView.OVERALL) {
+                                    { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                                } else null,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        // Date Filter Display Implementation
+                        if (startDate != null || endDate != null) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                ),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            Icons.Default.List,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text(
+                                                "Date Filter Applied",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                "${startDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Start"} - ${endDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "End"}",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                    IconButton(onClick = {
+                                        startDate = null
+                                        endDate = null
+                                    }) {
+                                        Icon(Icons.Default.Close, "Clear filter")
+                                    }
+                                }
+                            }
+                        }
+
+                        // Class Selector for Per Class view Implementation
+                        if (selectedView == ReportView.PER_CLASS && classes.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
                             var expanded by remember { mutableStateOf(false) }
 
                             ExposedDropdownMenuBox(
@@ -114,7 +202,7 @@ fun ReportsScreen(
                                     readOnly = true,
                                     label = { Text("Class") },
                                     leadingIcon = {
-                                        Icon(Icons.Default.Info, contentDescription = null)
+                                        Icon(Icons.Default.Face, contentDescription = null)
                                     },
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -149,124 +237,80 @@ fun ReportsScreen(
                             }
                         }
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    if (selectedClass != null) {
-                        AttendanceReportList(
+                // Content based on selected view Implementation
+                when {
+                    selectedView == ReportView.PER_CLASS && selectedClass != null -> {
+                        PerClassReportList(
                             classId = selectedClass!!.id,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            startDate = startDate,
+                            endDate = endDate
                         )
-                    } else {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                            )
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    Icons.Default.List,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(64.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    "Select a class to view reports",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
                     }
-                } else {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                    selectedView == ReportView.OVERALL -> {
+                        OverallReportList(
+                            viewModel = viewModel,
+                            classes = classes,
+                            startDate = startDate,
+                            endDate = endDate
                         )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Icon(
-                                Icons.Default.Warning,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                "No classes available",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                    }
+                    selectedView == ReportView.PER_CLASS && classes.isEmpty() -> {
+                        EmptyStateCard("No classes available")
+                    }
+                    selectedView == ReportView.PER_CLASS -> {
+                        EmptyStateCard("Select a class to view reports")
                     }
                 }
             }
         }
     }
+
+    if (showDateFilter) {
+        DateRangeFilterDialog(
+            startDate = startDate,
+            endDate = endDate,
+            onDismiss = { showDateFilter = false },
+            onApply = { start, end ->
+                startDate = start
+                endDate = end
+                showDateFilter = false
+            }
+        )
+    }
+}
+
+enum class ReportView {
+    PER_CLASS, OVERALL
 }
 
 @Composable
-fun AttendanceReportList(
+fun PerClassReportList(
     classId: Int,
-    viewModel: AttendanceViewModel
+    viewModel: AttendanceViewModel,
+    startDate: LocalDate?,
+    endDate: LocalDate?
 ) {
     val students by viewModel.getStudentsByClass(classId).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var summaryMap by remember { mutableStateOf<Map<Int, AttendanceSummary>>(emptyMap()) }
 
-    LaunchedEffect(students) {
+    LaunchedEffect(students, startDate, endDate) {
         scope.launch {
             val summaries = mutableMapOf<Int, AttendanceSummary>()
             students.forEach { student ->
-                summaries[student.id] = viewModel.getAttendanceSummary(student.id)
+                summaries[student.id] = viewModel.getAttendanceSummary(student.id, startDate, endDate)
             }
             summaryMap = summaries
         }
     }
 
     if (students.isEmpty()) {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-            )
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "No students in this class",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+        EmptyStateCard("No students in this class")
     } else {
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -280,6 +324,184 @@ fun AttendanceReportList(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun OverallReportList(
+    viewModel: AttendanceViewModel,
+    classes: List<ClassEntity>,
+    startDate: LocalDate?,
+    endDate: LocalDate?
+) {
+    val scope = rememberCoroutineScope()
+    var allStudentsWithSummary by remember { mutableStateOf<List<Pair<StudentWithClassInfo, AttendanceSummary>>>(emptyList()) }
+
+    LaunchedEffect(classes, startDate, endDate) {
+        scope.launch {
+            val results = mutableListOf<Pair<StudentWithClassInfo, AttendanceSummary>>()
+            classes.forEach { classEntity ->
+                viewModel.getStudentsByClass(classEntity.id).collect { students ->
+                    students.forEach { student ->
+                        val summary = viewModel.getAttendanceSummary(student.id, startDate, endDate)
+                        results.add(
+                            Pair(
+                                StudentWithClassInfo(student, classEntity.className, classEntity.subjectName),
+                                summary
+                            )
+                        )
+                    }
+                    allStudentsWithSummary = results.sortedByDescending { it.second.percentage }
+                }
+            }
+        }
+    }
+
+    if (allStudentsWithSummary.isEmpty()) {
+        EmptyStateCard("No students found")
+    } else {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AccountBox, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Total Students: ${allStudentsWithSummary.size}",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            items(allStudentsWithSummary) { (studentInfo, summary) ->
+                OverallAttendanceReportCard(
+                    studentInfo = studentInfo,
+                    summary = summary
+                )
+            }
+        }
+    }
+}
+
+data class StudentWithClassInfo(
+    val student: StudentEntity,
+    val className: String,
+    val subjectName: String
+)
+
+@Composable
+fun OverallAttendanceReportCard(
+    studentInfo: StudentWithClassInfo,
+    summary: AttendanceSummary
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 6.dp,
+                shape = RoundedCornerShape(20.dp),
+                spotColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+            ),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            when {
+                                summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                else -> Color(0xFFE53935).copy(alpha = 0.15f)
+                            },
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            // Student Info Implementation
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiary,
+                                    MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            ),
+                            shape = RoundedCornerShape(15.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = studentInfo.student.studentName.first().uppercase(),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = studentInfo.student.studentName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "ID: ${studentInfo.student.studentIdNumber}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Face,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.tertiary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${studentInfo.className} - ${studentInfo.subjectName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Summary Content Implementation
+            AttendanceSummaryContent(summary)
         }
     }
 }
@@ -310,8 +532,7 @@ fun ModernAttendanceReportCard(
                         colors = listOf(
                             when {
                                 summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
-                                summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.15f)
-                                summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
                                 else -> Color(0xFFE53935).copy(alpha = 0.15f)
                             },
                             MaterialTheme.colorScheme.surface
@@ -320,7 +541,7 @@ fun ModernAttendanceReportCard(
                 )
                 .padding(20.dp)
         ) {
-            // Student Info
+            // Student Info Implementation
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -365,120 +586,125 @@ fun ModernAttendanceReportCard(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Attendance Percentage
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = when {
-                        summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.2f)
-                        summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.2f)
-                        summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.2f)
-                        else -> Color(0xFFE53935).copy(alpha = 0.2f)
-                    }
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "Attendance Rate",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = when {
-                                summary.percentage >= 90 -> "Excellent"
-                                summary.percentage >= 75 -> "Good"
-                                summary.percentage >= 60 -> "Fair"
-                                else -> "Needs Improvement"
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Text(
-                        text = String.format("%.1f%%", summary.percentage),
-                        style = MaterialTheme.typography.displaySmall,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            summary.percentage >= 90 -> Color(0xFF43A047)
-                            summary.percentage >= 75 -> Color(0xFF4DB6AC)
-                            summary.percentage >= 60 -> Color(0xFFFFB300)
-                            else -> Color(0xFFE53935)
-                        }
-                    )
-                }
+            AttendanceSummaryContent(summary)
+        }
+    }
+}
+
+@Composable
+fun AttendanceSummaryContent(summary: AttendanceSummary) {
+    // Attendance Percentage Implementation
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = when {
+                summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.2f)
+                summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.2f)
+                summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.2f)
+                else -> Color(0xFFE53935).copy(alpha = 0.2f)
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Progress Bar
-            LinearProgressIndicator(
-                progress = { summary.percentage / 100f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(12.dp),
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Attendance Rate",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = when {
+                        summary.percentage >= 90 -> "Excellent"
+                        summary.percentage >= 75 -> "Good"
+                        summary.percentage >= 60 -> "Fair"
+                        else -> "Needs Improvement"
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = String.format("%.1f%%", summary.percentage),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
                 color = when {
                     summary.percentage >= 90 -> Color(0xFF43A047)
                     summary.percentage >= 75 -> Color(0xFF4DB6AC)
                     summary.percentage >= 60 -> Color(0xFFFFB300)
                     else -> Color(0xFFE53935)
-                },
-                trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                }
             )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Statistics Grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    label = "Present",
-                    value = summary.present.toString(),
-                    icon = Icons.Default.CheckCircle,
-                    color = Color(0xFF43A047),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    label = "Late",
-                    value = summary.late.toString(),
-                    icon = Icons.Default.Person,
-                    color = Color(0xFFFFB300),
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StatCard(
-                    label = "Absent",
-                    value = summary.absent.toString(),
-                    icon = Icons.Default.Clear,
-                    color = Color(0xFFE53935),
-                    modifier = Modifier.weight(1f)
-                )
-                StatCard(
-                    label = "Total Days",
-                    value = summary.total.toString(),
-                    icon = Icons.Default.DateRange,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.weight(1f)
-                )
-            }
         }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    // Progress Bar Implementation
+    LinearProgressIndicator(
+        progress = { summary.percentage / 100f },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(12.dp),
+        color = when {
+            summary.percentage >= 90 -> Color(0xFF43A047)
+            summary.percentage >= 75 -> Color(0xFF4DB6AC)
+            summary.percentage >= 60 -> Color(0xFFFFB300)
+            else -> Color(0xFFE53935)
+        },
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+    )
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    // Statistics Grid Implementation
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatCard(
+            label = "Present",
+            value = summary.present.toString(),
+            icon = Icons.Default.CheckCircle,
+            color = Color(0xFF43A047),
+            modifier = Modifier.weight(1f)
+        )
+        StatCard(
+            label = "Late",
+            value = summary.late.toString(),
+            icon = Icons.Default.Warning,
+            color = Color(0xFFFFB300),
+            modifier = Modifier.weight(1f)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        StatCard(
+            label = "Absent",
+            value = summary.absent.toString(),
+            icon = Icons.Default.Clear,
+            color = Color(0xFFE53935),
+            modifier = Modifier.weight(1f)
+        )
+        StatCard(
+            label = "Total Days",
+            value = summary.total.toString(),
+            icon = Icons.Default.DateRange,
+            color = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -523,4 +749,162 @@ fun StatCard(
             )
         }
     }
+}
+
+@Composable
+fun EmptyStateCard(message: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.Menu,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun DateRangeFilterDialog(
+    startDate: LocalDate?,
+    endDate: LocalDate?,
+    onDismiss: () -> Unit,
+    onApply: (LocalDate?, LocalDate?) -> Unit
+) {
+    var tempStartDate by remember { mutableStateOf(startDate) }
+    var tempEndDate by remember { mutableStateOf(endDate) }
+    var selectingStart by remember { mutableStateOf(true) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(Icons.Default.DateRange, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        },
+        title = { Text("Date Range Filter", fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Select date range for filtering attendance records:")
+
+                // Start Date Implementation
+                OutlinedCard(
+                    onClick = { selectingStart = true },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Start Date", style = MaterialTheme.typography.labelMedium)
+                            Text(
+                                tempStartDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (tempStartDate != null) {
+                            IconButton(onClick = { tempStartDate = null }) {
+                                Icon(Icons.Default.Clear, "Clear")
+                            }
+                        }
+                    }
+                }
+
+                // End Date Implementation
+                OutlinedCard(
+                    onClick = { selectingStart = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("End Date", style = MaterialTheme.typography.labelMedium)
+                            Text(
+                                tempEndDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (tempEndDate != null) {
+                            IconButton(onClick = { tempEndDate = null }) {
+                                Icon(Icons.Default.Clear, "Clear")
+                            }
+                        }
+                    }
+                }
+
+                // Quick Actions Implementation
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            tempStartDate = LocalDate.now().minusDays(7)
+                            tempEndDate = LocalDate.now()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Last 7 Days", style = MaterialTheme.typography.labelSmall)
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            tempStartDate = LocalDate.now().minusMonths(1)
+                            tempEndDate = LocalDate.now()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Last Month", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onApply(tempStartDate, tempEndDate) },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Apply Filter")
+            }
+        },
+        dismissButton = {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(
+                    onClick = {
+                        tempStartDate = null
+                        tempEndDate = null
+                    }
+                ) {
+                    Text("Clear All")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        }
+    )
 }

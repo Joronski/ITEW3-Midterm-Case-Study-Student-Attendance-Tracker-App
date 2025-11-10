@@ -1,6 +1,5 @@
 package com.example.reciostudentattendancetracker.ui.screens
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

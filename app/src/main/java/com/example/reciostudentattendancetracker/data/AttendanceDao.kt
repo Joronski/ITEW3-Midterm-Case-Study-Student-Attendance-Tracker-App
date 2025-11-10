@@ -8,6 +8,9 @@ interface AttendanceDao {
     @Query("SELECT * FROM attendance_table WHERE studentId = :studentId ORDER BY date DESC")
     fun getAttendanceByStudent(studentId: Int): Flow<List<AttendanceEntity>>
 
+    @Query("SELECT * FROM attendance_table WHERE studentId = :studentId ORDER BY date DESC")
+    suspend fun getAttendanceByStudentList(studentId: Int): List<AttendanceEntity>
+
     @Query("SELECT * FROM attendance_table WHERE date = :date AND studentId IN (SELECT id FROM student_table WHERE classId = :classId)")
     suspend fun getAttendanceByDateAndClass(date: String, classId: Int): List<AttendanceEntity>
 

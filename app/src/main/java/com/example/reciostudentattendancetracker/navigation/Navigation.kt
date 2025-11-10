@@ -19,6 +19,7 @@ sealed class Screen(val route: String) {
     object StudentList : Screen("student_list/{classId}") {
         fun createRoute(classId: Int) = "student_list/$classId"
     }
+    object AllStudents : Screen("all_students")
     object Attendance : Screen("attendance")
     object Reports : Screen("reports")
 }
@@ -36,6 +37,7 @@ fun AppNavigation(
         composable(Screen.Main.route) {
             MainScreen(
                 onNavigateToClasses = { navController.navigate(Screen.ClassList.route) },
+                onNavigateToStudents = { navController.navigate(Screen.AllStudents.route) },
                 onNavigateToAttendance = { navController.navigate(Screen.Attendance.route) },
                 onNavigateToReports = { navController.navigate(Screen.Reports.route) }
             )
@@ -58,6 +60,13 @@ fun AppNavigation(
             val classId = backStackEntry.arguments?.getInt("classId") ?: 0
             StudentListScreen(
                 classId = classId,
+                viewModel = viewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AllStudents.route) {
+            AllStudentsScreen(
                 viewModel = viewModel,
                 onNavigateBack = { navController.popBackStack() }
             )

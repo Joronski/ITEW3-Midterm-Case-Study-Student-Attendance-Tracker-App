@@ -15,7 +15,7 @@ class AttendanceRepository(private val database: AppDatabase) {
     suspend fun deleteClass(classEntity: ClassEntity) = database.classDao().deleteClass(classEntity)
 
     // Student Operations Implemented in Repo
-    fun getStudentByClass(classId: Int): Flow<List<StudentEntity>> = database.studentDao().getStudentsByClass(classId)
+    fun getStudentsByClass(classId: Int): Flow<List<StudentEntity>> = database.studentDao().getStudentsByClass(classId)
 
     suspend fun getStudentById(studentId: Int): StudentEntity? = database.studentDao().getStudentById(studentId)
 
@@ -27,6 +27,8 @@ class AttendanceRepository(private val database: AppDatabase) {
 
     // Attendance Operations Implemented in Repo
     fun getAttendanceByStudent(studentId: Int): Flow<List<AttendanceEntity>> = database.attendanceDao().getAttendanceByStudent(studentId)
+
+    suspend fun getAttendanceByStudentList(studentId: Int): List<AttendanceEntity> = database.attendanceDao().getAttendanceByStudentList(studentId)
 
     suspend fun getAttendanceByDateAndClass(date: String, classId: Int): List<AttendanceEntity> = database.attendanceDao().getAttendanceByDateAndClass(date, classId)
 

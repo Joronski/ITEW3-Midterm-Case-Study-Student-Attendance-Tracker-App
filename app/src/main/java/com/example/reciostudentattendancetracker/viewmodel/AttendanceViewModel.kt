@@ -1,18 +1,17 @@
 package com.example.reciostudentattendancetracker.viewmodel
 
-import android.adservices.adid.AdId
 import android.app.Application
-import android.health.connect.datatypes.units.Percentage
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.reciostudentattendancetracker.data.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.sql.Date
+import java.time.LocalDate
 
 class AttendanceViewModel(application: Application) : AndroidViewModel(application) {
+
     private val repository: AttendanceRepository
 
     init {
@@ -20,7 +19,7 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         repository = AttendanceRepository(database)
     }
 
-    // Classes Implemented in ViewModel
+    // Classes Implemented in the ViewModel
     val allClasses: Flow<List<ClassEntity>> = repository.getAllClasses()
 
     fun insertClass(className: String, subjectName: String) {
@@ -41,8 +40,9 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // Students Implemented in ViewModel
-    fun getStudentsByClass(classId: Int): Flow<List<StudentEntity>> = repository.getStudentByClass(classId)
+    // Students Implemented in the ViewModel
+    fun getStudentsByClass(classId: Int): Flow<List<StudentEntity>> =
+        repository.getStudentsByClass(classId)
 
     fun insertStudent(studentName: String, studentIdNumber: String, classId: Int) {
         viewModelScope.launch {
@@ -68,10 +68,12 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // Attendance Implemented in ViewModel
-    suspend fun getAttendanceByDateAndClass(date: String, classId: Int): List<AttendanceEntity> = repository.getAttendanceByDateAndClass(date, classId)
+    // Attendance Implemented in the ViewModel
+    suspend fun getAttendanceByDateAndClass(date: String, classId: Int): List<AttendanceEntity> =
+        repository.getAttendanceByDateAndClass(date, classId)
 
-    suspend fun getAttendanceByDateAndStudent(date: String, studentId: Int): AttendanceEntity? = repository.getAttendanceByDateAndStudent(date, studentId)
+    suspend fun getAttendanceByDateAndStudent(date: String, studentId: Int): AttendanceEntity? =
+        repository.getAttendanceByDateAndStudent(date, studentId)
 
     fun markAttendance(date: String, studentId: Int, status: String) {
         viewModelScope.launch {
@@ -90,11 +92,31 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    suspend fun getAttendanceSummary(studentId: Int): AttendanceSummary {
-        val present = repository.getAttendanceCountByStatus(studentId, "Present")
-        val absent = repository.getAttendanceCountByStatus(studentId, "Absent")
-        val late = repository.getAttendanceCountByStatus(studentId, "Late")
-        val total = repository.getTotalAttendanceCount(studentId)
+    // Attendance Summary with optional date filtering
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getAttendanceSummary(
+        studentId: Int,
+        startDate: LocalDate? = null,
+        endDate: LocalDate? = null
+    ): AttendanceSummary {
+        val allRecords = repository.getAttendanceByStudentList(studentId)
+
+        // Filter by date range if provided
+        val filteredRecords = if (startDate != null || endDate != null) {
+            allRecords.filter { record ->
+                val recordDate = LocalDate.parse(record.date)
+                val afterStart = startDate?.let { recordDate >= it } ?: true
+                val beforeEnd = endDate?.let { recordDate <= it } ?: true
+                afterStart && beforeEnd
+            }
+        } else {
+            allRecords
+        }
+
+        val present = filteredRecords.count { it.status == "Present" }
+        val absent = filteredRecords.count { it.status == "Absent" }
+        val late = filteredRecords.count { it.status == "Late" }
+        val total = filteredRecords.size
 
         val percentage = if (total > 0) {
             (present.toFloat() / total.toFloat() * 100)
