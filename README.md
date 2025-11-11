@@ -133,14 +133,14 @@ This project serves as the **Midterm Case Study** for **ITEW3 - Mobile Programmi
 
 | Color | Name | Hex Code | Usage |
 |-------|------|----------|-------|
-| ![#2E7D32](https://via.placeholder.com/15/2E7D32/000000?text=+) | Forest Green | `#2E7D32` | Primary (Headers, Buttons) |
-| ![#66BB6A](https://via.placeholder.com/15/66BB6A/000000?text=+) | Leaf Green | `#66BB6A` | Secondary (Student Cards) |
-| ![#81C784](https://via.placeholder.com/15/81C784/000000?text=+) | Mint Green | `#81C784` | Tertiary (Reports) |
-| ![#43A047](https://via.placeholder.com/15/43A047/000000?text=+) | Success Green | `#43A047` | Present Status (90%+) |
-| ![#4DB6AC](https://via.placeholder.com/15/4DB6AC/000000?text=+) | Teal Green | `#4DB6AC` | Good Performance (75-89%) |
-| ![#E53935](https://via.placeholder.com/15/E53935/000000?text=+) | Error Red | `#E53935` | Absent Status (<60%) |
-| ![#FFB300](https://via.placeholder.com/15/FFB300/000000?text=+) | Warning Amber | `#FFB300` | Late Status (60-74%) |
-| ![#F1F8F4](https://via.placeholder.com/15/F1F8F4/000000?text=+) | Light Green | `#F1F8F4` | Background |
+| ![#2E7D32](https://www.colorhexa.com/2e7d32.png) | Forest Green | `#2E7D32` | Primary (Headers, Buttons) |
+| ![#66BB6A](https://www.colorhexa.com/66bb6a.png) | Leaf Green | `#66BB6A` | Secondary (Student Cards) |
+| ![#81C784](https://www.colorhexa.com/81c784.png) | Mint Green | `#81C784` | Tertiary (Reports) |
+| ![#43A047](https://www.colorhexa.com/43a047.png) | Success Green | `#43A047` | Present Status (90%+) |
+| ![#4DB6AC](https://www.colorhexa.com/4db6ac.png) | Teal Green | `#4DB6AC` | Good Performance (75-89%) |
+| ![#E53935](https://www.colorhexa.com/e53935.png) | Error Red | `#E53935` | Absent Status (<60%) |
+| ![#FFB300](https://www.colorhexa.com/ffb300.png) | Warning Amber | `#FFB300` | Late Status (60-74%) |
+| ![#F1F8F4](https://www.colorhexa.com/f1f8f4.png) | Light Green | `#F1F8F4` | Background |
 
 ### Design Principles ✨
 
