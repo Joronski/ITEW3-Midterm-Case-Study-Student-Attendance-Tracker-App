@@ -1,7 +1,6 @@
 package com.example.reciostudentattendancetracker.ui.screens
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,10 +23,10 @@ import com.example.reciostudentattendancetracker.data.StudentEntity
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceViewModel
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceSummary
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen(
@@ -170,11 +169,13 @@ fun ReportsScreen(
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
-                                            Text(
-                                                "${startDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Start"} - ${endDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "End"}",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                Text(
+                                                    "${startDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Start"} - ${endDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "End"}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
                                         }
                                     }
                                     IconButton(onClick = {
@@ -303,7 +304,9 @@ fun PerClassReportList(
         scope.launch {
             val summaries = mutableMapOf<Int, AttendanceSummary>()
             students.forEach { student ->
-                summaries[student.id] = viewModel.getAttendanceSummary(student.id, startDate, endDate)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    summaries[student.id] = viewModel.getAttendanceSummary(student.id, startDate, endDate)
+                }
             }
             summaryMap = summaries
         }
@@ -344,7 +347,11 @@ fun OverallReportList(
             classes.forEach { classEntity ->
                 viewModel.getStudentsByClass(classEntity.id).collect { students ->
                     students.forEach { student ->
-                        val summary = viewModel.getAttendanceSummary(student.id, startDate, endDate)
+                        val summary = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            viewModel.getAttendanceSummary(student.id, startDate, endDate)
+                        } else {
+                            TODO("VERSION.SDK_INT < O")
+                        }
                         results.add(
                             Pair(
                                 StudentWithClassInfo(student, classEntity.className, classEntity.subjectName),
@@ -432,7 +439,8 @@ fun OverallAttendanceReportCard(
                         colors = listOf(
                             when {
                                 summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
-                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.15f)
+                                summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.15f)
                                 else -> Color(0xFFE53935).copy(alpha = 0.15f)
                             },
                             MaterialTheme.colorScheme.surface
@@ -500,7 +508,7 @@ fun OverallAttendanceReportCard(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Summary Content Implementation
+            // Other Card Implementation
             AttendanceSummaryContent(summary)
         }
     }
@@ -532,7 +540,8 @@ fun ModernAttendanceReportCard(
                         colors = listOf(
                             when {
                                 summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.15f)
-                                summary.percentage >= 75 -> Color(0xFFFFB300).copy(alpha = 0.15f)
+                                summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.15f)
+                                summary.percentage >= 60 -> Color(0xFFFFB300).copy(alpha = 0.15f)
                                 else -> Color(0xFFE53935).copy(alpha = 0.15f)
                             },
                             MaterialTheme.colorScheme.surface
@@ -598,6 +607,8 @@ fun AttendanceSummaryContent(summary: AttendanceSummary) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
+
+
             containerColor = when {
                 summary.percentage >= 90 -> Color(0xFF43A047).copy(alpha = 0.2f)
                 summary.percentage >= 75 -> Color(0xFF4DB6AC).copy(alpha = 0.2f)
@@ -679,7 +690,7 @@ fun AttendanceSummaryContent(summary: AttendanceSummary) {
         StatCard(
             label = "Late",
             value = summary.late.toString(),
-            icon = Icons.Default.Warning,
+            icon = Icons.Default.DateRange,
             color = Color(0xFFFFB300),
             modifier = Modifier.weight(1f)
         )
@@ -782,7 +793,6 @@ fun EmptyStateCard(message: String) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DateRangeFilterDialog(
     startDate: LocalDate?,
@@ -818,11 +828,13 @@ fun DateRangeFilterDialog(
                     ) {
                         Column {
                             Text("Start Date", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                tempStartDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                Text(
+                                    tempStartDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         if (tempStartDate != null) {
                             IconButton(onClick = { tempStartDate = null }) {
@@ -846,11 +858,13 @@ fun DateRangeFilterDialog(
                     ) {
                         Column {
                             Text("End Date", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                tempEndDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                Text(
+                                    tempEndDate?.format(DateTimeFormatter.ofPattern("MMM dd, yyyy")) ?: "Not set",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         if (tempEndDate != null) {
                             IconButton(onClick = { tempEndDate = null }) {
@@ -864,8 +878,10 @@ fun DateRangeFilterDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = {
-                            tempStartDate = LocalDate.now().minusDays(7)
-                            tempEndDate = LocalDate.now()
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                tempStartDate = LocalDate.now().minusDays(7)
+                                tempEndDate = LocalDate.now()
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {
@@ -873,8 +889,10 @@ fun DateRangeFilterDialog(
                     }
                     OutlinedButton(
                         onClick = {
-                            tempStartDate = LocalDate.now().minusMonths(1)
-                            tempEndDate = LocalDate.now()
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                tempStartDate = LocalDate.now().minusMonths(1)
+                                tempEndDate = LocalDate.now()
+                            }
                         },
                         modifier = Modifier.weight(1f)
                     ) {

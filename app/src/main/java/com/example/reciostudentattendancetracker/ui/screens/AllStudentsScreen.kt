@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.reciostudentattendancetracker.data.StudentEntity
 import com.example.reciostudentattendancetracker.viewmodel.AttendanceViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
 
 data class StudentWithClass(
     val student: StudentEntity,
@@ -34,16 +34,21 @@ fun AllStudentsScreen(
 ) {
     val classes by viewModel.allClasses.collectAsState(initial = emptyList())
     val studentsWithClass = remember { mutableStateOf<List<StudentWithClass>>(emptyList()) }
-    val scope = rememberCoroutineScope()
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedClassFilter by remember { mutableStateOf<Int?>(null) }
 
+    // Collect all students from all classes
     LaunchedEffect(classes) {
-        scope.launch {
-            val allStudents = mutableListOf<StudentWithClass>()
-            classes.forEach { classEntity ->
-                viewModel.getStudentsByClass(classEntity.id).collect { students ->
+        if (classes.isNotEmpty()) {
+            val flows = classes.map { classEntity ->
+                viewModel.getStudentsByClass(classEntity.id)
+            }
+
+            combine(flows) { studentLists ->
+                val allStudents = mutableListOf<StudentWithClass>()
+                studentLists.forEachIndexed { index, students ->
+                    val classEntity = classes[index]
                     students.forEach { student ->
                         allStudents.add(
                             StudentWithClass(
@@ -53,14 +58,19 @@ fun AllStudentsScreen(
                             )
                         )
                     }
-                    studentsWithClass.value = allStudents.sortedBy { it.student.studentName }
                 }
+                allStudents.sortedBy { it.student.studentName }
+            }.collect { students ->
+                studentsWithClass.value = students
             }
+        } else {
+            studentsWithClass.value = emptyList()
         }
     }
 
     val filteredStudents = studentsWithClass.value.filter { studentWithClass ->
-        val matchesSearch = studentWithClass.student.studentName.contains(searchQuery, ignoreCase = true) || studentWithClass.student.studentIdNumber.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = studentWithClass.student.studentName.contains(searchQuery, ignoreCase = true) ||
+                studentWithClass.student.studentIdNumber.contains(searchQuery, ignoreCase = true)
         val matchesClass = selectedClassFilter == null || studentWithClass.student.classId == selectedClassFilter
         matchesSearch && matchesClass
     }
@@ -105,7 +115,7 @@ fun AllStudentsScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Implementations of Search and Filter Card
+                // Search and Filter Card Implementation
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -118,7 +128,7 @@ fun AllStudentsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Search Bar
+                        // Search Bar Implementation
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { searchQuery = it },
@@ -143,7 +153,7 @@ fun AllStudentsScreen(
                             )
                         )
 
-                        // Class Filter Implementations
+                        // Class Filter Implementation
                         if (classes.isNotEmpty()) {
                             var expanded by remember { mutableStateOf(false) }
 
@@ -209,7 +219,7 @@ fun AllStudentsScreen(
                             }
                         }
 
-                        // Student Implementation Count
+                        // Student Count Implementation
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -250,22 +260,18 @@ fun AllStudentsScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Icon(
-                                Icons.Default.Person,
+                                Icons.Default.AccountCircle,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-
                             Spacer(modifier = Modifier.height(16.dp))
-
                             Text(
-                                "No Students Found",
+                                "No students found",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
-
                             Spacer(modifier = Modifier.height(8.dp))
-
                             Text(
                                 "Try adjusting your search or filter",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -277,9 +283,9 @@ fun AllStudentsScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(filteredStudents) { studentsWithClass ->
+                        items(filteredStudents) { studentWithClass ->
                             ViewOnlyStudentCard(
-                                studentWithClass = studentsWithClass
+                                studentWithClass = studentWithClass
                             )
                         }
                     }
@@ -351,28 +357,22 @@ fun ViewOnlyStudentCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Star,
+                        imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
                     Spacer(modifier = Modifier.width(4.dp))
-
                     Text(
                         text = studentWithClass.student.studentIdNumber,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Face,
@@ -380,9 +380,7 @@ fun ViewOnlyStudentCard(
                         modifier = Modifier.size(16.dp),
                         tint = MaterialTheme.colorScheme.secondary
                     )
-
                     Spacer(modifier = Modifier.width(4.dp))
-
                     Text(
                         text = "${studentWithClass.className} - ${studentWithClass.subjectName}",
                         style = MaterialTheme.typography.bodySmall,
